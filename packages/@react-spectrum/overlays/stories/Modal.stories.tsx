@@ -11,6 +11,7 @@
  */
 
 import {ActionButton, Button} from '@react-spectrum/button';
+import {App} from './sandbox';
 import {ButtonGroup} from '@react-spectrum/buttongroup';
 import {Content} from '@react-spectrum/view';
 import {Dialog, DialogTrigger} from '@react-spectrum/dialog';
@@ -30,6 +31,10 @@ storiesOf('Modal', module)
   .add(
     'unmounting trigger',
     () => <UnmountingTrigger />
+  )
+  .add(
+    'app',
+    () => <App />
   );
 
 function ModalExample() {
