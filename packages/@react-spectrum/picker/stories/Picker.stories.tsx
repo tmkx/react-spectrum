@@ -22,7 +22,7 @@ export default {
   component: Picker,
   excludeStories: [],
   args: {
-    'label': 'Test',
+    // 'label': 'Test',
     onSelectionChange: action('onSelectionChange')
   },
   argTypes: {
