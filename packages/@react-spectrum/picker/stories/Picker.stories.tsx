@@ -12,8 +12,10 @@
 
 import {action} from '@storybook/addon-actions';
 import {ComponentMeta, ComponentStoryObj} from '@storybook/react';
+import {expect} from '@storybook/jest';
 import {Item, Picker, Section, SpectrumPickerProps} from '../';
 import React from 'react';
+import {userEvent, within} from '@storybook/testing-library';
 
 export type PickerStory = ComponentStoryObj<typeof Picker>;
 
@@ -56,11 +58,12 @@ export default {
   }
 } as ComponentMeta<typeof Picker>;
 
-export const Default = {
+export const Default: SectionsStory = {
   render: (args) => <DefaultPicker {...args} />
 };
 
-export const Sections = {
+export type SectionsStory = ComponentStoryObj<typeof DefaultPicker>;
+export const Sections: PickerStory = {
   args: {
     children: (
       <Section title="Animals">
@@ -70,6 +73,26 @@ export const Sections = {
       </Section>
     )
   }
+};
+
+Sections.play = async ({canvasElement}) => {
+  let canvas = within(canvasElement);
+  let button = await canvas.findByRole('button');
+  userEvent.click(button);
+  let body = canvasElement.ownerDocument.body;
+  let listbox = await within(body).findByRole('listbox');
+
+  expect(await within(listbox).findByText('Animals')).toBeInTheDocument();
+
+  let groups = await within(listbox).findAllByRole('group');
+  expect(groups).toHaveLength(1);
+
+  let items = await within(listbox).findAllByRole('option');
+  expect(items.length).toBe(3);
+  expect(items[0]).toHaveTextContent('Aardvark');
+  expect(items[1]).toHaveTextContent('Kangaroo');
+  expect(items[2]).toHaveTextContent('Snake');
+  expect(document.activeElement).toBe(listbox);
 };
 
 function DefaultPicker(props: SpectrumPickerProps<object>) {

@@ -12,8 +12,12 @@ module.exports = {
     'storybook-dark-mode',
     './custom-addons/provider/register',
     './custom-addons/descriptions/register',
-    './custom-addons/theme/register'
+    './custom-addons/theme/register',
+    '@storybook/addon-interactions'
   ],
+  features: {
+    interactionsDebugger: true
+  },
   typescript: {
     check: false,
     reactDocgen: false
