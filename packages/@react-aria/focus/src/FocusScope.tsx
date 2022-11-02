@@ -91,9 +91,6 @@ export function FocusScope(props: FocusScopeProps) {
   // we want the parent scope to be the active scope instead.
   let ctxParent = ctx?.scopeRef ?? null;
   let parentScope = useMemo(() => activeScope && focusScopeTree.getTreeNode(activeScope) && !isAncestorScope(activeScope, ctxParent) ? activeScope : ctxParent, [ctxParent]);
-  console.log(scopeRef.current, parentScope?.current);
-  console.log(focusScopeTree)
-
 
   useLayoutEffect(() => {
     // Find all rendered nodes between the sentinels and add them to the scope.
@@ -478,7 +475,6 @@ function shouldRestoreFocus(scopeRef: ScopeRef) {
 
 function useRestoreFocus(scopeRef: RefObject<Element[]>, restoreFocus: boolean, contain: boolean) {
   // create a ref during render instead of useLayoutEffect so the active element is saved before a child with autoFocus=true mounts.
-  console.log('active element', document.activeElement, scopeRef.current)
   const nodeToRestoreRef = useRef(typeof document !== 'undefined' ? document.activeElement as FocusableElement : null);
 
   // restoring scopes should all track if they are active regardless of contain, but contain already tracks it plus logic to contain the focus
@@ -512,7 +508,6 @@ function useRestoreFocus(scopeRef: RefObject<Element[]>, restoreFocus: boolean, 
     }
 
     focusScopeTree.getTreeNode(scopeRef).nodeToRestore = nodeToRestoreRef.current;
-    console.log(nodeToRestoreRef.current);
 
     // Handle the Tab key so that tabbing out of the scope goes to the next element
     // after the node that had focus when the scope mounted. This is important when
@@ -589,14 +584,11 @@ function useRestoreFocus(scopeRef: RefObject<Element[]>, restoreFocus: boolean, 
       ) {
         // freeze the focusScopeTree so it persists after the raf, otherwise during unmount nodes are removed from it
         let clonedTree = focusScopeTree.clone();
-        console.log(clonedTree)
         requestAnimationFrame(() => {
-          console.log('restoring focus')
           // Only restore focus if we've lost focus to the body, the alternative is that focus has been purposefully moved elsewhere
           if (document.activeElement === document.body) {
             // look up the tree starting with our scope to find a nodeToRestore still in the DOM
             let treeNode = clonedTree.getTreeNode(scopeRef);
-            console.log('restoring focus', treeNode?.nodeToRestore)
             while (treeNode) {
               if (treeNode.nodeToRestore && document.body.contains(treeNode.nodeToRestore)) {
                 focusElement(treeNode.nodeToRestore);
@@ -782,7 +774,6 @@ class Tree {
   }
 
   removeTreeNode(scopeRef: ScopeRef) {
-    console.log('remove node?', scopeRef)
     // never remove the root
     if (scopeRef === null) {
       return;
@@ -791,18 +782,22 @@ class Tree {
     let parentNode = node.parent;
     // when we remove a scope, check if any sibling scopes are trying to restore focus to something inside the scope we're removing
     // if we are, then replace the siblings restore with the restore from the scope we're removing
-    console.log('replacing any nodeToRestore with', node.nodeToRestore, 'from', scopeRef.current, node.scopeRef.current)
     for (let current of this.traverse()) {
-      console.log(current !== node, current.nodeToRestore, isElementInScope(current.nodeToRestore, node.scopeRef.current))
       if (
         current !== node &&
         node.nodeToRestore &&
-        current.nodeToRestore &&
-        node.scopeRef.current &&
-        isElementInScope(current.nodeToRestore, node.scopeRef.current)
+        (
+          // current.nodeToRestore might be undefined when the current node has just been added.
+          !current.nodeToRestore ||
+          (
+            current.nodeToRestore &&
+            node.scopeRef.current &&
+            isElementInScope(current.nodeToRestore, node.scopeRef.current)
+          )
+        )
       ) {
-        console.log('reassign node to restore', node.nodeToRestore);
-        current.nodeToRestore = node.nodeToRestore;
+        // Wait a frame before reassigning the nodeToRestore.
+        requestAnimationFrame(() => current.nodeToRestore = node.nodeToRestore);
       }
     }
     let children = node.children;
