@@ -166,6 +166,7 @@ export default {
             // // TODO: the axe test still fails for some reason...
             // id: 'aria-hidden-focus',
             // selector: '*:not(#blah)'
+            // This one is too broad IMO
             id: 'aria-hidden-focus',
             enabled: false
           }
