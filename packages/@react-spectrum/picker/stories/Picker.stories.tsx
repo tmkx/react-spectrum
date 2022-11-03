@@ -28,7 +28,7 @@ import Paste from '@spectrum-icons/workflow/Paste';
 import React,  {useState} from 'react';
 import {Text} from '@react-spectrum/text';
 import {useAsyncList} from '@react-stately/data';
-import {userEvent, within} from '@storybook/testing-library';
+import {userEvent, waitForElementToBeRemoved, within} from '@storybook/testing-library';
 import {View} from '@react-spectrum/view';
 
 let flatOptions = [
@@ -204,6 +204,7 @@ export const Sections: PickerStory = {
 
 Sections.play = async ({canvasElement}) => {
   // TODO: figure out what exactly this is complaining about
+  // @ts-ignore
   await Default.play({canvasElement});
   let body = canvasElement.ownerDocument.body;
   let listbox = await within(body).findByRole('listbox');
@@ -347,15 +348,34 @@ export const Focus: FocusStory = {
   render: () => (
     <div style={{display: 'flex', width: 'auto', margin: '250px 0'}}>
       <label htmlFor="focus-before">Focus before</label>
-      <input id="focus-before" />
+      <input id="focus-before" data-testid="before" />
       <Picker label="Focus-Test" items={flatOptions} autoFocus onFocus={action('focus')} onBlur={action('blur')} onKeyDown={action('keydown')} onKeyUp={action('keyup')}>
         {item => <Item>{item.name}</Item>}
       </Picker>
       <label htmlFor="focus-after">Focus after</label>
-      <input id="focus-after" />
+      <input id="focus-after" data-testid="after" />
     </div>
   ),
   name: 'keyboard tab focus'
+};
+
+Focus.play = async ({canvasElement}) => {
+  // @ts-ignore
+  await Default.play({canvasElement});
+  let canvas = within(canvasElement);
+
+  let body = canvasElement.ownerDocument.body;
+  let listbox = await within(body).findByRole('listbox');
+  expect(document.activeElement).toBe(listbox);
+
+  userEvent.tab();
+  let afterInput = await canvas.findByTestId('after');
+  expect(document.activeElement).toBe(afterInput);
+  expect(listbox).not.toBeInTheDocument();
+
+  userEvent.tab({shift: true});
+  let button = await canvas.findByRole('button');
+  expect(document.activeElement).toBe(button);
 };
 
 export type ResizePickerStory = ComponentStoryObj<typeof ResizePicker>;
