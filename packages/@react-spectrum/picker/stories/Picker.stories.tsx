@@ -182,6 +182,14 @@ export const Default: DefaultStory = {
   render: (args) => <DefaultPicker {...args} />
 };
 
+Default.play = async ({canvasElement}) => {
+  let canvas = within(canvasElement);
+  let button = await canvas.findByRole('button');
+  userEvent.click(button);
+  let body = canvasElement.ownerDocument.body;
+  await within(body).findByRole('listbox');
+};
+
 export const Sections: PickerStory = {
   args: {
     children: (
@@ -195,9 +203,8 @@ export const Sections: PickerStory = {
 };
 
 Sections.play = async ({canvasElement}) => {
-  let canvas = within(canvasElement);
-  let button = await canvas.findByRole('button');
-  userEvent.click(button);
+  // TODO: figure out what exactly this is complaining about
+  await Default.play({canvasElement});
   let body = canvasElement.ownerDocument.body;
   let listbox = await within(body).findByRole('listbox');
 
@@ -371,6 +378,15 @@ export const Scrolling: ScrollingStory = {
     </View>
   ),
   name: 'scrolling container'
+};
+
+// Example of a story that breaks on render
+export const RenderError: PickerStory = {
+  args: {
+    children: <div>test</div>,
+    items: []
+  },
+  name: 'render error'
 };
 
 
