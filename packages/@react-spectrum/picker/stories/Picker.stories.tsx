@@ -185,7 +185,7 @@ export const Default: DefaultStory = {
 Default.play = async ({canvasElement}) => {
   let canvas = within(canvasElement);
   let button = await canvas.findByRole('button');
-  userEvent.click(button);
+  await userEvent.click(button);
   let body = canvasElement.ownerDocument.body;
   await within(body).findByRole('listbox');
 };
@@ -368,12 +368,12 @@ Focus.play = async ({canvasElement}) => {
   let listbox = await within(body).findByRole('listbox');
   expect(document.activeElement).toBe(listbox);
 
-  userEvent.tab();
+  await userEvent.tab();
   let afterInput = await canvas.findByTestId('after');
   expect(document.activeElement).toBe(afterInput);
   expect(listbox).not.toBeInTheDocument();
 
-  userEvent.tab({shift: true});
+  await userEvent.tab({shift: true});
   let button = await canvas.findByRole('button');
   expect(document.activeElement).toBe(button);
 };
