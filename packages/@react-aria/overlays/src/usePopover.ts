@@ -97,13 +97,13 @@ export function usePopover(props: AriaPopoverProps, state: OverlayTriggerState):
   // by the time usePreventScroll measures the element.
   let [isPositioned, setPositioned] = useState(false);
   useLayoutEffect(() => {
-    if (!isNonModal && placement) {
+    if (placement) {
       setPositioned(true);
     }
   }, [isNonModal, placement]);
 
   usePreventScroll({
-    isDisabled: isNonModal || !isPositioned
+    isDisabled: !isPositioned
   });
 
   useLayoutEffect(() => {
