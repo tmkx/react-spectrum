@@ -509,6 +509,40 @@ storiesOf('ComboBox', module)
         {renderRow({validationState: 'invalid', isQuiet: true})}
       </Flex>
     )
+  )
+  .add(
+    'Fixed positioning',
+    () => (
+      <>
+        <div
+          style={{
+            position: 'fixed',
+            top: 'calc(50vh - var(--spectrum-global-dimension-size-400) - 1.3 * var(--spectrum-global-dimension-size-150)'
+          }}>
+          <AsyncLoadingExample />
+        </div>
+        <div
+          style={{
+            position: 'relative',
+            height: '200vh'
+          }}>
+          <div
+            style={{
+              position: 'absolute',
+              top: '0'
+            }}>
+            Top
+          </div>
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '0'
+            }}>
+            Bottom
+          </div>
+        </div>
+      </>
+    )
   );
 
 
