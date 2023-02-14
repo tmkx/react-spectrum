@@ -46,7 +46,8 @@ export interface AriaTableColumnResizeProps<T> {
   /** Called for every resize event that results in new column sizes. */
   onResize?: (widths: Map<Key, number | string>) => void,
   /** Called when resizing ends. */
-  onResizeEnd?: (widths: Map<Key, number | string>) => void
+  onResizeEnd?: (widths: Map<Key, number | string>) => void,
+  activateResizeManually?: boolean
 }
 
 export interface AriaTableColumnResizeState<T> extends Omit<TableColumnResizeState<T>, 'widths'> {}
@@ -58,19 +59,32 @@ export interface AriaTableColumnResizeState<T> extends Omit<TableColumnResizeSta
  * @param ref - The ref attached to the resizer's visually hidden input element.
  */
 export function useTableColumnResize<T>(props: AriaTableColumnResizeProps<T>, state: AriaTableColumnResizeState<T>, ref: RefObject<HTMLInputElement>): TableColumnResizeAria {
-  let {column: item, triggerRef, isDisabled, onResizeStart, onResize, onResizeEnd} = props;
+  let {column: item, triggerRef, isDisabled, onResizeStart, onResize, onResizeEnd, activateResizeManually} = props;
   const stringFormatter = useLocalizedStringFormatter(intlMessages);
   let id = useId();
   let isResizing = useRef(false);
   let lastSize = useRef(null);
+  let editModeEnabled = state.tableState.isKeyboardNavigationDisabled;
 
   let {direction} = useLocale();
   let {keyboardProps} = useKeyboard({
     onKeyDown: (e) => {
-      if (triggerRef?.current && (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ' || e.key === 'Tab')) {
-        e.preventDefault();
-        // switch focus back to the column header on anything that ends edit mode
-        focusSafely(triggerRef.current);
+      if (editModeEnabled) {
+        if (triggerRef?.current && (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ' || e.key === 'Tab') && editModeEnabled) {
+          e.preventDefault();
+          // switch focus back to the column header on anything that ends edit mode
+          focusSafely(triggerRef.current);
+        }
+      } else if (activateResizeManually) {
+        // Continue propagation on ArrowRight/Left so event bubbles to useSelectableCollection
+        if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
+          e.continuePropagation();
+        }
+
+        if (e.key === 'Enter') {
+          startResize(item);
+          state.tableState.setKeyboardNavigationDisabled(true);
+        }
       }
     }
   });
@@ -131,7 +145,8 @@ export function useTableColumnResize<T>(props: AriaTableColumnResizeProps<T>, st
       if (pointerType === 'mouse') {
         endResize(item);
       }
-    }
+    },
+    disableLeftRightHandling: activateResizeManually && !editModeEnabled
   });
 
   let min = Math.floor(state.getColumnMinWidth(item.key));
@@ -182,15 +197,6 @@ export function useTableColumnResize<T>(props: AriaTableColumnResizeProps<T>, st
         return;
       }
       focusInput();
-    },
-    onPress: (e) => {
-      if (e.pointerType === 'touch') {
-        focusInput();
-      } else if (e.pointerType !== 'virtual') {
-        if (triggerRef?.current) {
-          focusSafely(triggerRef.current);
-        }
-      }
     }
   });
 
@@ -204,10 +210,12 @@ export function useTableColumnResize<T>(props: AriaTableColumnResizeProps<T>, st
       {
         id,
         onFocus: () => {
-          // useMove calls onMoveStart for every keypress, but we want resize start to only be called when we start resize mode
-          // call instead during focus and blur
-          startResize(item);
-          state.tableState.setKeyboardNavigationDisabled(true);
+          if (!activateResizeManually) {
+            // useMove calls onMoveStart for every keypress, but we want resize start to only be called when we start resize mode
+            // call instead during focus and blur
+            startResize(item);
+            state.tableState.setKeyboardNavigationDisabled(true);
+          }
         },
         onBlur: () => {
           endResize(item);
