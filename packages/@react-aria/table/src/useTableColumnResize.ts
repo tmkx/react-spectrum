@@ -207,15 +207,11 @@ export function useTableColumnResize<T>(props: AriaTableColumnResizeProps<T>, st
   });
 
   return {
-    resizerProps:
-    {
-      ...mergeProps(
-        keyboardProps,
-        moveProps,
-        pressProps
-      ),
-      onKeyDown
-    },
+    resizerProps: mergeProps(
+      keyboardProps,
+      {...moveProps, onKeyDown},
+      pressProps
+    ),
     inputProps: mergeProps(
       {
         id,
