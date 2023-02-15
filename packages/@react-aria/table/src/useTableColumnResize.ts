@@ -145,9 +145,15 @@ export function useTableColumnResize<T>(props: AriaTableColumnResizeProps<T>, st
       if (pointerType === 'mouse') {
         endResize(item);
       }
-    },
-    disableLeftRightHandling: activateResizeManually && !editModeEnabled
+    }
   });
+
+  let onKeyDown = useCallback((e) => {
+    if (editModeEnabled) {
+      moveProps.onKeyDown(e);
+    }
+  }, [editModeEnabled, moveProps]);
+
 
   let min = Math.floor(state.getColumnMinWidth(item.key));
   let max = Math.floor(state.getColumnMaxWidth(item.key));
@@ -201,11 +207,15 @@ export function useTableColumnResize<T>(props: AriaTableColumnResizeProps<T>, st
   });
 
   return {
-    resizerProps: mergeProps(
-      keyboardProps,
-      moveProps,
-      pressProps
-    ),
+    resizerProps:
+    {
+      ...mergeProps(
+        keyboardProps,
+        moveProps,
+        pressProps
+      ),
+      onKeyDown
+    },
     inputProps: mergeProps(
       {
         id,
