@@ -168,6 +168,8 @@ export function useSelect<T>(props: AriaSelectOptions<T>, state: SelectState<T>,
         triggerProps['aria-label'] && !triggerProps['aria-labelledby'] ? triggerProps.id : null
       ].filter(Boolean).join(' '),
       onFocus(e: FocusEvent) {
+        state.setFocused(true);
+
         if (state.isFocused) {
           return;
         }
@@ -179,10 +181,10 @@ export function useSelect<T>(props: AriaSelectOptions<T>, state: SelectState<T>,
         if (props.onFocusChange) {
           props.onFocusChange(true);
         }
-
-        state.setFocused(true);
       },
       onBlur(e: FocusEvent) {
+        state.setFocused(false);
+
         if (state.isOpen) {
           return;
         }
@@ -194,8 +196,6 @@ export function useSelect<T>(props: AriaSelectOptions<T>, state: SelectState<T>,
         if (props.onFocusChange) {
           props.onFocusChange(false);
         }
-
-        state.setFocused(false);
       }
     }),
     valueProps: {
@@ -209,6 +209,8 @@ export function useSelect<T>(props: AriaSelectOptions<T>, state: SelectState<T>,
       disallowEmptySelection: true,
       linkBehavior: 'selection',
       onBlur: (e) => {
+        state.setFocused(false);
+
         if (e.currentTarget.contains(e.relatedTarget as Node)) {
           return;
         }
@@ -220,8 +222,6 @@ export function useSelect<T>(props: AriaSelectOptions<T>, state: SelectState<T>,
         if (props.onFocusChange) {
           props.onFocusChange(false);
         }
-
-        state.setFocused(false);
       },
       'aria-labelledby': [
         fieldProps['aria-labelledby'],
